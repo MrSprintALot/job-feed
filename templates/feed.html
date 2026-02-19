@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Feed — JobFeed{% endblock %}
+
+{% block content %}
+<div class="feed-header">
+    <div class="feed-header-text">
+        <h1>Job Feed</h1>
+        <p class="feed-count">{{ total_jobs }} jobs found</p>
+    </div>
+</div>
+
+<form class="filters" method="GET" action="/">
+    <div class="filter-row">
+        <div class="filter-group">
+            <label for="search">Search</label>
+            <input type="text" id="search" name="search" placeholder="data analyst, python, power bi…" value="{{ current_search }}">
+        </div>
+        <div class="filter-group">
+            <label for="source">Source</label>
+            <select id="source" name="source">
+                <option value="">All Sources</option>
+                {% for s in sources %}
+                <option value="{{ s }}" {% if s == current_source %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="days">Posted</label>
+            <select id="days" name="days">
+                <option value="">All Time</option>
+                <option value="1" {% if current_days == '1' %}selected{% endif %}>Today</option>
+                <option value="3" {% if current_days == '3' %}selected{% endif %}>Last 3 days</option>
+                <option value="7" {% if current_days == '7' %}selected{% endif %}>Last week</option>
+                <option value="14" {% if current_days == '14' %}selected{% endif %}>Last 2 weeks</option>
+                <option value="30" {% if current_days == '30' %}selected{% endif %}>Last month</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-filter">Filter</button>
+    </div>
+</form>
+
+<div class="job-list">
+    {% if jobs %}
+        {% for job in jobs %}
+        <div class="job-card" data-job-id="{{ job['id'] }}">
+            <div class="job-card-left">
+                <div class="job-card-header">
+                    <span class="source-badge source-{{ job['source_platform'] }}">{{ job['source_platform'] }}</span>
+                    {% if job['salary'] %}<span class="salary-badge">{{ job['salary'] }}</span>{% endif %}
+                </div>
+                <h3 class="job-title"><a href="{{ job['url'] }}" target="_blank" rel="noopener">{{ job['title'] }}</a></h3>
+                <div class="job-meta">
+                    <span class="job-company">{{ job['company'] or 'Unknown Company' }}</span>
+                    <span class="job-separator">·</span>
+                    <span class="job-location">{{ job['location'] }}</span>
+                    {% if job['posted_at'] %}<span class="job-separator">·</span><span class="job-date">{{ job['posted_at'][:10] }}</span>{% endif %}
+                </div>
+                {% if job['tags'] %}
+                <div class="job-tags">{% for tag in job['tags'].split(',')[:5] %}<span class="tag">{{ tag.strip() }}</span>{% endfor %}</div>
+                {% endif %}
+            </div>
+            <div class="job-card-actions">
+                <a href="{{ job['url'] }}" target="_blank" rel="noopener" class="btn btn-apply">Apply ↗</a>
+                <div class="save-dropdown-wrapper">
+                    <button class="btn btn-save {% if job['is_saved'] %}saved{% endif %}" onclick="toggleSaveDropdown(this, {{ job['id'] }})" title="Save to list">
+                        {% if job['is_saved'] %}★{% else %}☆{% endif %}
+                    </button>
+                    <div class="save-dropdown hidden" data-job-id="{{ job['id'] }}">
+                        {% for l in lists %}<button class="save-dropdown-item" onclick="saveToList({{ job['id'] }}, '{{ l['name'] }}', this)">{{ l['name'] }}</button>{% endfor %}
+                        <div class="save-dropdown-divider"></div>
+                        <button class="save-dropdown-item new-list" onclick="createAndSave({{ job['id'] }})">+ New List</button>
+                        {% if job['is_saved'] %}<button class="save-dropdown-item unsave" onclick="unsaveJob({{ job['id'] }})">Remove from saved</button>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <p class="empty-icon">📭</p>
+            <p class="empty-text">No jobs found matching your filters.</p>
+            <p class="empty-sub">Try adjusting your search or click <strong>Refresh Jobs</strong> to scrape new listings.</p>
+        </div>
+    {% endif %}
+</div>
+
+{% if total_pages > 1 %}
+<div class="pagination">
+    {% if page > 1 %}<a href="?page={{ page - 1 }}&search={{ current_search }}&source={{ current_source }}&days={{ current_days }}" class="btn btn-page">← Prev</a>{% endif %}
+    <span class="page-info">Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}<a href="?page={{ page + 1 }}&search={{ current_search }}&source={{ current_source }}&days={{ current_days }}" class="btn btn-page">Next →</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
