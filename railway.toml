@@ -1,0 +1,12 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+# After first deploy, add a volume in Railway dashboard:
+# Service → Settings → Volumes → Add Volume
+# Mount path: /data
+# Then add env var: RAILWAY_VOLUME_MOUNT_PATH=/data
