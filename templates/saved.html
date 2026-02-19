@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Saved — JobFeed{% endblock %}
+
+{% block content %}
+<div class="feed-header">
+    <div class="feed-header-text">
+        <h1>Saved Jobs</h1>
+        <p class="feed-count">{{ jobs|length }} saved</p>
+    </div>
+    <button class="btn btn-new-list" onclick="createNewList()">+ New List</button>
+</div>
+
+<!-- List Tabs -->
+<div class="list-tabs">
+    <a href="/saved" class="list-tab {% if not current_list %}active{% endif %}">
+        All
+    </a>
+    {% for l in lists %}
+    <a href="/saved/{{ l['name'] }}" class="list-tab {% if current_list == l['name'] %}active{% endif %}">
+        {{ l['name'] }}
+        {% if l['name'] in list_counts %}
+        <span class="tab-count">{{ list_counts[l['name']] }}</span>
+        {% endif %}
+    </a>
+    {% endfor %}
+</div>
+
+<!-- Saved Job Cards -->
+<div class="job-list">
+    {% if jobs %}
+        {% for job in jobs %}
+        <div class="job-card" data-job-id="{{ job['id'] }}">
+            <div class="job-card-left">
+                <div class="job-card-header">
+                    <span class="source-badge source-{{ job['source_platform'] }}">{{ job['source_platform'] }}</span>
+                    <span class="list-badge">{{ job['list_name'] }}</span>
+                    {% if job['salary'] %}
+                    <span class="salary-badge">{{ job['salary'] }}</span>
+                    {% endif %}
+                </div>
+                <h3 class="job-title">
+                    <a href="{{ job['url'] }}" target="_blank" rel="noopener">{{ job['title'] }}</a>
+                </h3>
+                <div class="job-meta">
+                    <span class="job-company">{{ job['company'] or 'Unknown Company' }}</span>
+                    <span class="job-separator">·</span>
+                    <span class="job-location">{{ job['location'] }}</span>
+                    {% if job['posted_at'] %}
+                    <span class="job-separator">·</span>
+                    <span class="job-date">{{ job['posted_at'][:10] }}</span>
+                    {% endif %}
+                </div>
+                {% if job['tags'] %}
+                <div class="job-tags">
+                    {% for tag in job['tags'].split(',')[:5] %}
+                    <span class="tag">{{ tag.strip() }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="saved-date">Saved {{ job['saved_at'][:10] }}</div>
+            </div>
+            <div class="job-card-actions">
+                <a href="{{ job['url'] }}" target="_blank" rel="noopener" class="btn btn-apply">Apply ↗</a>
+                <button
+                    class="btn btn-save saved"
+                    onclick="unsaveJob({{ job['id'] }}, '{{ job['list_name'] }}')"
+                    title="Remove from saved"
+                >★</button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <p class="empty-icon">📑</p>
+            <p class="empty-text">No saved jobs{% if current_list %} in "{{ current_list }}"{% endif %}.</p>
+            <p class="empty-sub">Browse the <a href="/">Feed</a> and save jobs you're interested in.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
